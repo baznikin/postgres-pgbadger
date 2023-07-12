@@ -23,17 +23,23 @@ run_pgbadger () {
     ls -1tr ${PGLOGS}/*.${LOG_EXT} | xargs -n1 -I % sh -c '{ ls -l %; ${CMD} --outdir "$PGBADGER_DATA" --format "$LOG_FORMAT" --incremental ${PGBADGER_EXTRA_OPTIONS} %; }'
   fi
 
+  # pre-gzip old enough .html to save storage and cpu cycles
+  # newer compress /index.html or wi'll loose links to previous days
+  # do not compress weekly files and files changed 8 days ago or later so weekly index can be built
+  find $PGBADGER_DATA -name index.html -mtime +8 | grep -v "/www/index.html" | grep -v week | xargs -n1 gzip --force --verbose
+  # do not compress weekly files changed 38 days ago or later so monthly index can be built (if we'll build it in future)
+  find $PGBADGER_DATA -name index.html -mtime +38 | grep -v "/www/index.html" | grep week | xargs -n1 gzip --force --verbose
+
   return 0
 }
 
+
 if [[ "true" == "${CRON}" || "1" == "${CRON}" ]]; then
-  env | sort
   echo "run $CRON_SCHEDULE"
   echo "$CRON_SCHEDULE /entrypoint.sh $@" > /etc/crontabs/root
   export CRON=0
   nginx &
   crond -f
-
 else
   echo "run one time"
   run_pgbadger $@
