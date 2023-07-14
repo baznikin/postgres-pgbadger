@@ -23,8 +23,8 @@ COPY nginx.conf /etc/nginx/nginx.conf
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-ENV PGHOME=/home/postgres/pgdata
-ENV PGLOGS=${PGHOME}/pg_log
+ENV PGROOT=/home/postgres/pgdata/pgroot
+ENV PGLOGS=${PGROOT}/pg_log
 ENV PGBADGER_DATA=/www
 ENV PGBADGER_EXTRA_OPTIONS=--start-monday
 ENV CRON=0
